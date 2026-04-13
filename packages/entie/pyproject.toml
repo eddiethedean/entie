@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "entie"
+version = "0.1.0"
+description = "MongoDB table helpers on entei-core — PyMongo only, no pydantable-native"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+authors = [{ name = "Odos Matthews", email = "odosmatthews@gmail.com" }]
+keywords = [
+    "dataframe",
+    "mongodb",
+    "pymongo",
+    "entei-core",
+    "data-engineering",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Topic :: Database",
+    "Topic :: Software Development :: Libraries",
+]
+dependencies = [
+    "entei-core>=0.1.0,<2",
+    "pymongo>=4.6",
+    "typing-extensions>=4.5",
+]
+
+[project.urls]
+Homepage = "https://github.com/eddiethedean/entie"
+Repository = "https://github.com/eddiethedean/entie"
+Issues = "https://github.com/eddiethedean/entie/issues"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "mongomock>=4.1",
+    "ruff>=0.6",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

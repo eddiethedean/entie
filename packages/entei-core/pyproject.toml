@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "entei-core"
+version = "0.1.0"
+description = "MongoDB root materialization to columnar dicts (PyMongo; pydantable-protocol only)."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+dependencies = [
+    "pydantable-protocol>=1.16.0,<2",
+    "pymongo>=4.6",
+    "typing-extensions>=4.5",
+]
+
+[project.optional-dependencies]
+dev = [
+    "entei-core[test]",
+]
+test = [
+    "pytest>=7.0",
+    "mongomock>=4.1",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+# Root is tooling only. Install packages from ./packages/ (see README.md).
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = "-ra --strict-markers -p no:green_light"
+testpaths = ["packages/entei-core/tests", "packages/entie/tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.uv.workspace]
+members = ["packages/entei-core", "packages/entie"]

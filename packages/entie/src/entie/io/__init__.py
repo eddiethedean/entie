@@ -1,4 +1,4 @@
-"""I/O helpers (moltres ``moltres.io`` analogue)."""
+"""I/O helpers: :class:`Records` for bulk inserts."""
 
 from __future__ import annotations
 

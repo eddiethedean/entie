@@ -1,4 +1,4 @@
-"""Materialize MongoDB collections to columnar ``dict[str, list]``."""
+"""Scan collections into columnar ``dict[str, list]`` (top-level fields only)."""
 
 from __future__ import annotations
 
@@ -8,17 +8,25 @@ from .mongo_root import MongoRoot
 
 
 def mongo_root_to_column_dict(root: MongoRoot) -> dict[str, list[Any]]:
-    """Read all documents from ``root.collection`` into columnar form.
+    """Run ``find()`` on ``root.collection`` and build aligned column lists.
+
+    Reads the entire cursor into memory. Only top-level keys participate; nested
+    documents are values in a single cell.
 
     Parameters
     ----------
     root:
-        Collection root and optional ``fields`` ordering (see :class:`MongoRoot`).
+        Collection and optional ``fields`` (see :class:`MongoRoot`).
 
     Returns
     -------
     dict[str, list]
-        One list per column key, aligned by row index.
+        Keys are field names; each value is the column in document order.
+
+    Notes
+    -----
+    When ``root.fields`` is ``None``, keys are inferred from documents. When it is
+    an empty tuple, returns ``{}`` for any document count.
     """
     coll = root.collection
     cursor = coll.find()
@@ -43,18 +51,18 @@ def mongo_root_to_column_dict(root: MongoRoot) -> dict[str, list[Any]]:
 
 
 def materialize_root_data(data: Any) -> Any:
-    """If ``data`` is :class:`MongoRoot`, return columnar dict; else pass through.
+    """Normalize pipeline data: columnarize :class:`MongoRoot`, else identity.
 
     Parameters
     ----------
     data:
-        A :class:`MongoRoot` or any other value.
+        Any value. If it is a :class:`MongoRoot`, returns the columnar dict from
+        :func:`mongo_root_to_column_dict`; otherwise returns ``data`` unchanged.
 
     Returns
     -------
     Any
-        Columnar dict from :func:`mongo_root_to_column_dict` if ``data`` is
-        :class:`MongoRoot`; otherwise ``data`` unchanged.
+        Columnar dict or the original ``data``.
     """
     if isinstance(data, MongoRoot):
         return mongo_root_to_column_dict(data)

@@ -1,4 +1,4 @@
-"""MongoDB connection helpers (moltres ``connect`` / ``Database`` analogue)."""
+"""PyMongo connection helpers: :func:`connect`, :class:`EntieMongoClient`, :class:`EntieDatabase`."""
 
 from __future__ import annotations
 
@@ -13,61 +13,66 @@ _DEFAULT_URI_ENV = "ENTIE_URI"
 class EntieMongoClient:
     """Thin wrapper around :class:`pymongo.mongo_client.MongoClient`.
 
-    Use :meth:`database` to obtain an :class:`EntieDatabase` and then
-    :meth:`EntieDatabase.collection` for use with
-    :meth:`EnteiDataFrame.from_collection`.
+    Use :meth:`database` to get an :class:`EntieDatabase`, then
+    :meth:`EntieDatabase.collection` or :meth:`EntieDatabase.table` for
+    :meth:`EnteiDataFrame.from_collection` and inserts.
     """
 
     __slots__ = ("_client",)
 
     def __init__(self, client: MongoClient[Any]) -> None:
-        """Parameters
+        """Wrap an existing PyMongo client.
+
+        Parameters
         ----------
         client:
-            An existing PyMongo :class:`~pymongo.mongo_client.MongoClient`.
+            Connected :class:`~pymongo.mongo_client.MongoClient` instance.
         """
         self._client = client
 
     @property
     def raw(self) -> MongoClient[Any]:
-        """Underlying PyMongo client."""
+        """The underlying :class:`~pymongo.mongo_client.MongoClient`."""
         return self._client
 
     def database(self, name: str, *, codec_options: Any | None = None) -> EntieDatabase:
-        """Open a database by name.
+        """Return a database by name.
 
         Parameters
         ----------
         name:
             MongoDB database name.
         codec_options:
-            Optional :class:`~bson.codec_options.CodecOptions` for this database.
+            Optional BSON :class:`~bson.codec_options.CodecOptions` for this database.
 
         Returns
         -------
         EntieDatabase
-            Handle backed by ``client[name]`` or ``get_database``.
+            Wrapper around ``client[name]`` or ``get_database(...)``.
         """
         if codec_options is not None:
             return EntieDatabase(self._client.get_database(name, codec_options=codec_options))
         return EntieDatabase(self._client[name])
 
     def close(self) -> None:
-        """Close the underlying PyMongo client."""
+        """Close the underlying PyMongo client (releases sockets)."""
         self._client.close()
 
     def __enter__(self) -> EntieMongoClient:
+        """Enter context: returns ``self`` (caller should ``close()`` on exit)."""
         return self
 
-    def __exit__(self, *args: object) -> None:
+    def __exit__(self, *_args: object) -> None:
+        """Exit context: calls :meth:`close`."""
         self.close()
 
 
 class EntieDatabase:
-    """Reference to a MongoDB database (moltres ``Database``-shaped entry point).
+    """Handle for a single MongoDB database (PyMongo ``Database``).
 
-    Wrap a PyMongo :class:`~pymongo.database.Database`, not a
-    :class:`~pymongo.collection.Collection`.
+    Must wrap a PyMongo :class:`~pymongo.database.Database`, not a
+    :class:`~pymongo.collection.Collection`. Use :meth:`collection` / :meth:`table`
+    to obtain collections by name.
     """
 
     __slots__ = ("_db",)
@@ -76,29 +81,29 @@ class EntieDatabase:
         """Parameters
         ----------
         db:
-            PyMongo ``Database`` instance (e.g. ``client["app"]``).
+            PyMongo :class:`~pymongo.database.Database` (e.g. ``client["app"]``).
         """
         self._db = db
 
     @property
     def raw(self) -> Any:
-        """Underlying PyMongo ``Database``."""
+        """The underlying PyMongo :class:`~pymongo.database.Database`."""
         return self._db
 
     def collection(self, name: str) -> Any:
-        """Return a :class:`~pymongo.collection.Collection` by name."""
+        """Return the named :class:`~pymongo.collection.Collection`."""
         return self._db[name]
 
     def table(self, name: str) -> Any:
-        """Same as :meth:`collection` — moltres-style name for a logical table."""
+        """Alias for :meth:`collection` (collection-as-table naming)."""
         return self.collection(name)
 
     def list_collection_names(self) -> list[str]:
-        """Return collection names in this database (delegates to PyMongo)."""
+        """List collection names in this database (see PyMongo ``list_collection_names``)."""
         return list(self._db.list_collection_names())
 
     def tables(self) -> list[str]:
-        """Collection names in this database (alias for :meth:`list_collection_names`)."""
+        """Same as :meth:`list_collection_names`."""
         return self.list_collection_names()
 
 
@@ -129,32 +134,34 @@ def connect(
     client: MongoClient[Any] | None = None,
     **client_kwargs: Any,
 ) -> EntieMongoClient | EntieDatabase:
-    """Connect to MongoDB (moltres :func:`connect` analogue).
+    """Open a MongoDB connection or wrap an existing client.
+
+    If ``client`` is omitted, builds a new :class:`~pymongo.mongo_client.MongoClient`
+    from ``uri``, or from the ``ENTIE_URI`` environment variable when ``uri`` is omitted.
 
     Parameters
     ----------
     uri:
-        MongoDB connection URI. If omitted, uses the ``ENTIE_URI`` environment
-        variable (parallel to moltres ``MOLTRES_DSN``).
+        MongoDB connection URI. Ignored when ``client`` is passed. If omitted and
+        ``client`` is omitted, ``ENTIE_URI`` is read.
     database:
-        If set, returns an :class:`EntieDatabase` for that database instead of
+        If set, returns :class:`EntieDatabase` for that database; otherwise returns
         :class:`EntieMongoClient`.
     client:
-        An existing :class:`~pymongo.mongo_client.MongoClient`. If provided,
-        ``uri`` must be ``None`` (URI is ignored).
+        Existing client to wrap. Do not pass ``uri`` at the same time.
     **client_kwargs:
-        Forwarded to :class:`~pymongo.mongo_client.MongoClient` when ``client``
-        is not provided.
+        Forwarded to :class:`~pymongo.mongo_client.MongoClient` only when a new
+        client is constructed (``client`` is ``None``).
 
     Returns
     -------
     EntieMongoClient or EntieDatabase
-        Client wrapper, or a database handle when ``database`` is set.
+        Client wrapper, or database handle when ``database`` is not ``None``.
 
     Raises
     ------
     ValueError
-        If no URI is available and ``client`` is not passed, or if both ``uri``
+        If neither a resolvable URI nor ``client`` is given; or if both ``uri``
         and ``client`` are passed.
     """
     if client is not None and uri is not None:

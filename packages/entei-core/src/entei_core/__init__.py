@@ -1,4 +1,9 @@
-"""MongoDB root materialization for columnar ``dict[str, list]`` roots (no native stack)."""
+"""entei-core: MongoDB collection roots and columnar ``dict[str, list]`` materialization.
+
+Exports :class:`MongoRoot`, :func:`mongo_root_to_column_dict`, and
+:func:`materialize_root_data` for building columnar data from PyMongo collections
+without a native extension stack.
+"""
 
 from __future__ import annotations
 

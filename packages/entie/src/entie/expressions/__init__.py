@@ -1,4 +1,4 @@
-"""Lightweight column / literal helpers (no pydantable dependency)."""
+"""Small helpers for column names and literals (optional ergonomic use with APIs that expect names)."""
 
 from __future__ import annotations
 
@@ -6,12 +6,17 @@ from typing import Any
 
 
 def col(name: str) -> str:
-    """Return a column name (string identity; for familiar ``select(col(\"x\"))`` style).
+    """Return ``name`` unchanged (readable ``select(col("x"))``-style spelling).
+
+    Parameters
+    ----------
+    name:
+        Column / field name.
 
     Returns
     -------
     str
-        The same ``name`` unchanged.
+        The same string ``name``.
     """
     return name
 
@@ -19,16 +24,26 @@ def col(name: str) -> str:
 def column(name: str) -> str:
     """Alias of :func:`col`.
 
+    Parameters
+    ----------
+    name:
+        Column / field name.
+
     Returns
     -------
     str
-        The same ``name`` unchanged.
+        The same string ``name``.
     """
     return name
 
 
 def lit(value: Any) -> Any:
-    """Return a literal value unchanged.
+    """Return ``value`` unchanged (placeholder for literal-friendly APIs).
+
+    Parameters
+    ----------
+    value:
+        Any object.
 
     Returns
     -------

@@ -1,4 +1,4 @@
-"""Mongo-backed table API (pure Python; uses ``entei_core`` materialization only)."""
+"""Lazy MongoDB collection views with in-Python filter, select, and collect."""
 
 from __future__ import annotations
 
@@ -9,6 +9,7 @@ from entei_core import MongoRoot, mongo_root_to_column_dict
 
 
 def _columns_to_rows(cols: dict[str, list[Any]]) -> list[dict[str, Any]]:
+    """Turn columnar dict into row dicts (aligned by index)."""
     if not cols:
         return []
     keys = list(cols.keys())
@@ -17,15 +18,18 @@ def _columns_to_rows(cols: dict[str, list[Any]]) -> list[dict[str, Any]]:
 
 
 def _rows_to_columns(rows: list[dict[str, Any]], keys: Sequence[str]) -> dict[str, list[Any]]:
+    """Turn row dicts into columnar dict using ``keys`` order."""
     if not keys:
         return {}
     return {k: [r.get(k) for r in rows] for k in keys}
 
 
 class EnteiDataFrame:
-    """Lazy view over a MongoDB collection with in-Python filter/select on ``collect``.
+    """Lazy view over a collection; filters and projection run in Python on :meth:`collect`.
 
-    Uses :func:`entei_core.mongo_root_to_column_dict` only — no pydantable-native.
+    Reads the collection once via :func:`entei_core.mongo_root_to_column_dict`
+    (full ``find()``), then applies ``filter_rows`` predicates and ``select``
+    column order. Not a streaming or server-side aggregation API.
     """
 
     __slots__ = ("_collection", "_fields", "_filters", "_projection")
@@ -38,6 +42,20 @@ class EnteiDataFrame:
         filters: tuple[Callable[[dict[str, Any]], bool], ...] = (),
         projection: tuple[str, ...] | None = None,
     ) -> None:
+        """Use :meth:`from_collection` to construct; constructor is for chaining.
+
+        Parameters
+        ----------
+        collection:
+            PyMongo collection (or compatible) scanned on ``collect``.
+        fields:
+            Column names passed to :class:`~entei_core.mongo_root.MongoRoot`; ``None``
+            means infer keys from documents.
+        filters:
+            Predicates applied in order to row dicts after materialization.
+        projection:
+            If set, output columns are restricted to these names (after filters).
+        """
         self._collection = collection
         self._fields = fields
         self._filters = filters
@@ -50,28 +68,47 @@ class EnteiDataFrame:
         *,
         fields: Sequence[str] | None = None,
     ) -> EnteiDataFrame:
-        """Load from a PyMongo :class:`~pymongo.collection.Collection` (or mongomock).
-
-        ``fields`` fixes column order for empty collections and limits which keys are
-        read; if omitted, keys are inferred from documents (see :class:`MongoRoot`).
+        """Build a frame from a PyMongo (or mongomock) collection.
 
         Parameters
         ----------
         collection:
-            Collection to scan (full read on ``collect``).
+            Collection whose documents are read when :meth:`collect` runs.
         fields:
-            Optional ordered column names; omit to infer from documents.
+            Ordered top-level field names. If ``None``, keys are inferred from
+            documents (union, sorted). If ``()`` or ``[]`` (normalized to ``()``),
+            no columns are materialized. Names must be unique.
 
         Returns
         -------
         EnteiDataFrame
-            Lazy frame; call :meth:`collect` to materialize.
+            Lazy frame; call :meth:`collect` to load data.
+
+        See Also
+        --------
+        entei_core.mongo_root.MongoRoot : Semantics of ``fields`` and empty collections.
         """
         fk = tuple(fields) if fields is not None else None
         return cls(collection, fields=fk)
 
     def select(self, *columns: str) -> EnteiDataFrame:
-        """Restrict output columns (applied after filters)."""
+        """Keep only the given output columns (applied after ``filter_rows``).
+
+        Parameters
+        ----------
+        *columns:
+            One or more distinct field names.
+
+        Returns
+        -------
+        EnteiDataFrame
+            New frame with projection set.
+
+        Raises
+        ------
+        ValueError
+            If no columns, or if any name is duplicated.
+        """
         if not columns:
             raise ValueError("select() requires at least one column name")
         if len(columns) != len(set(columns)):
@@ -84,7 +121,18 @@ class EnteiDataFrame:
         )
 
     def filter_rows(self, predicate: Callable[[dict[str, Any]], bool]) -> EnteiDataFrame:
-        """Keep rows where ``predicate(row)`` is true (``row`` is a ``dict``)."""
+        """Return a frame that keeps rows where ``predicate(row)`` is true.
+
+        Parameters
+        ----------
+        predicate:
+            Called with each row as a ``dict[str, Any]`` (top-level fields).
+
+        Returns
+        -------
+        EnteiDataFrame
+            New frame with ``predicate`` appended to the filter chain.
+        """
         return EnteiDataFrame(
             self._collection,
             fields=self._fields,
@@ -103,20 +151,18 @@ class EnteiDataFrame:
         *,
         as_lists: bool = True,
     ) -> dict[str, list[Any]] | list[dict[str, Any]]:
-        """Materialize: read collection, apply filters, then projection.
-
-        With ``as_lists=True`` (default), returns ``dict[str, list]`` columnar form.
-        With ``as_lists=False``, returns ``list[dict]`` rows.
+        """Materialize: scan collection, apply filters, then optional projection.
 
         Parameters
         ----------
         as_lists:
-            If ``True``, columnar output; if ``False``, one dict per row.
+            If ``True`` (default), return ``dict[str, list]`` columnar data. If
+            ``False``, return ``list[dict]`` rows.
 
         Returns
         -------
         dict[str, list] or list[dict]
-            Columnar or row-oriented result.
+            Columnar or row-oriented result consistent with ``as_lists``.
         """
         root = MongoRoot(self._collection, fields=self._fields)
         cols = mongo_root_to_column_dict(root)

@@ -1,10 +1,8 @@
-"""Public Entie API — MongoDB helpers on **entei-core** only (no native Rust stack).
+"""Public API for **entie**: MongoDB helpers built on **entei-core**.
 
-Mirrors the role of `moltres`_ relative to ``moltres-core``: **entei-core** holds
-Mongo materialization; **entie** adds connection helpers and a small Python
-table API.
-
-.. _moltres: https://github.com/eddiethedean/moltres
+**entei-core** provides collection-to-columnar materialization; **entie** adds
+PyMongo connection helpers, bulk row inserts, a small lazy **DataFrame**-style
+API, and expression helpers. Pure Python on top of PyMongo (no native stack).
 """
 
 from __future__ import annotations

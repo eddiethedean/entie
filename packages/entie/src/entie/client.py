@@ -154,8 +154,11 @@ def connect(
     Raises
     ------
     ValueError
-        If no URI is available and ``client`` is not passed.
+        If no URI is available and ``client`` is not passed, or if both ``uri``
+        and ``client`` are passed.
     """
+    if client is not None and uri is not None:
+        raise ValueError("Pass only one of uri=... or client=..., not both.")
     if client is None:
         resolved = uri if uri is not None else os.environ.get(_DEFAULT_URI_ENV)
         if not resolved:

@@ -25,3 +25,7 @@ class MongoRoot:
 
     collection: Any
     fields: tuple[str, ...] | None = None
+
+    def __post_init__(self) -> None:
+        if self.fields is not None and len(self.fields) != len(set(self.fields)):
+            raise ValueError("fields must not contain duplicate names")

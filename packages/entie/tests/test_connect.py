@@ -12,6 +12,12 @@ def test_connect_requires_uri_or_client() -> None:
         connect()
 
 
+def test_connect_rejects_uri_and_client_together() -> None:
+    client = mongomock.MongoClient()
+    with pytest.raises(ValueError, match="only one of uri"):
+        connect("mongodb://localhost:27017", client=client)
+
+
 def test_connect_with_in_memory_mock() -> None:
     client = mongomock.MongoClient()
     mc = connect(client=client)

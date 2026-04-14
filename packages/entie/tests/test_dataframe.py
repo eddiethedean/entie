@@ -44,6 +44,15 @@ def test_select_no_columns_raises() -> None:
         df.select()
 
 
+def test_select_duplicate_columns_raises() -> None:
+    client = mongomock.MongoClient()
+    coll = client.db.items
+    coll.insert_one({"x": 1})
+    df = EnteiDataFrame.from_collection(coll, fields=("x",))
+    with pytest.raises(ValueError, match="unique"):
+        df.select("x", "x")
+
+
 def test_empty_collection_with_fields_collect() -> None:
     client = mongomock.MongoClient()
     coll = client.db.empty
@@ -56,6 +65,14 @@ def test_empty_collection_no_fields_collect_empty_dict() -> None:
     client = mongomock.MongoClient()
     coll = client.db.empty_nf
     df = EnteiDataFrame.from_collection(coll)
+    assert df.collect(as_lists=True) == {}
+
+
+def test_from_collection_empty_fields_non_empty_collection() -> None:
+    client = mongomock.MongoClient()
+    coll = client.db.items
+    coll.insert_many([{"x": 1}, {"y": 2}])
+    df = EnteiDataFrame.from_collection(coll, fields=[])
     assert df.collect(as_lists=True) == {}
 
 

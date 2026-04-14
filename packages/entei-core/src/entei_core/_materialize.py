@@ -24,10 +24,10 @@ def mongo_root_to_column_dict(root: MongoRoot) -> dict[str, list[Any]]:
     cursor = coll.find()
     docs: list[dict[str, Any]] = list(cursor)
     if not docs:
-        keys = list(root.fields) if root.fields else []
+        keys = list(root.fields) if root.fields is not None else []
         return {k: [] for k in keys}
 
-    if root.fields:
+    if root.fields is not None:
         keys = list(root.fields)
     else:
         key_set: set[str] = set()

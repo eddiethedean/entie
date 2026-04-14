@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import pytest
 import mongomock
 from entei_core import MongoRoot, materialize_root_data, mongo_root_to_column_dict
 
@@ -41,3 +42,17 @@ def test_mongo_root_empty_no_fields() -> None:
     client = mongomock.MongoClient()
     coll = client.db.empty_no_fields
     assert mongo_root_to_column_dict(MongoRoot(coll)) == {}
+
+
+def test_mongo_root_duplicate_fields_raises() -> None:
+    client = mongomock.MongoClient()
+    coll = client.db.t
+    with pytest.raises(ValueError, match="duplicate"):
+        MongoRoot(coll, fields=("x", "x"))
+
+
+def test_mongo_root_explicit_empty_fields_non_empty_collection() -> None:
+    client = mongomock.MongoClient()
+    coll = client.db.t
+    coll.insert_many([{"x": 1}, {"x": 2}])
+    assert mongo_root_to_column_dict(MongoRoot(coll, fields=())) == {}

@@ -74,6 +74,8 @@ class EnteiDataFrame:
         """Restrict output columns (applied after filters)."""
         if not columns:
             raise ValueError("select() requires at least one column name")
+        if len(columns) != len(set(columns)):
+            raise ValueError("select() column names must be unique")
         return EnteiDataFrame(
             self._collection,
             fields=self._fields,

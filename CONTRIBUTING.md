@@ -51,6 +51,13 @@ tables.
 ## Releases
 
 - Bump **both** `packages/entei-core/pyproject.toml` and `packages/entie/pyproject.toml`
-  to the same `[project].version`.
-- Tag `vX.Y.Z` and push; the release workflow builds both packages and uploads
-  to PyPI (requires `PYPI_API_TOKEN`).
+  to the same `[project].version`, and set **`__version__`** in
+  `packages/entei-core/src/entei_core/__init__.py` and
+  `packages/entie/src/entie/__init__.py` to match (the release workflow verifies
+  all four against the tag).
+- Update **[CHANGELOG.md](CHANGELOG.md)** for the version (fold **Unreleased**
+  into the new section when you cut the release).
+- Ensure **CI** is green on `main` (`pytest`, lint, docs build as applicable).
+- Tag **`vX.Y.Z`** (leading `v`) and push the tag; the [release workflow](.github/workflows/release.yml)
+  builds both sdists/wheels, runs `twine check`, and uploads **entei-core** then
+  **entie** to PyPI (requires repository secret **`PYPI_API_TOKEN`**).

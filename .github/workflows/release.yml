@@ -81,6 +81,44 @@ jobs:
           print(f"Versions OK: entei-core={v_core}, entie={v_entie}")
           PY
 
+      - name: Verify __version__ in packages matches tag
+        shell: bash
+        env:
+          VERSION: ${{ steps.tag.outputs.version }}
+        run: |
+          python <<'PY'
+          import os
+          import sys
+          from pathlib import Path
+
+          expected = os.environ["VERSION"]
+
+          def read_version_attr(path: Path) -> str:
+              text = path.read_text(encoding="utf-8")
+              for line in text.splitlines():
+                  s = line.strip()
+                  if s.startswith("__version__"):
+                      _, _, rhs = s.partition("=")
+                      return rhs.strip().strip("\"'")
+              raise ValueError(f"no __version__ in {path}")
+
+          root = Path("packages/entei-core/src/entei_core/__init__.py")
+          umbrella = Path("packages/entie/src/entie/__init__.py")
+          v_core = read_version_attr(root)
+          v_entie = read_version_attr(umbrella)
+          bad = []
+          if v_core != expected:
+              bad.append(f"entei_core.__version__={v_core!r} != {expected!r}")
+          if v_entie != expected:
+              bad.append(f"entie.__version__={v_entie!r} != {expected!r}")
+          if bad:
+              print("Version mismatch:", file=sys.stderr)
+              for b in bad:
+                  print(f"- {b}", file=sys.stderr)
+              sys.exit(1)
+          print(f"__version__ OK: entei_core={v_core}, entie={v_entie}")
+          PY
+
       - name: Build entei-core
         working-directory: packages/entei-core
         run: |

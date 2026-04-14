@@ -11,6 +11,7 @@
 | [Moltres comparison](moltres_comparison.md) | SQL vs Mongo API mapping |
 | [Development](development.md) | Monorepo dev workflow (links to contributing guide) |
 | [Troubleshooting](troubleshooting.md) | Common issues and fixes |
+| [Roadmap](roadmap.md) | Planned directions and possible future work |
 
 ## Project links
 

@@ -60,6 +60,7 @@ Hosted on **Read the Docs**: [entie.readthedocs.io](https://entie.readthedocs.io
 | **Troubleshooting** | […/troubleshooting/](https://entie.readthedocs.io/en/latest/troubleshooting/) |
 | **Development** | […/development/](https://entie.readthedocs.io/en/latest/development/) |
 | **Moltres comparison** | […/moltres_comparison/](https://entie.readthedocs.io/en/latest/moltres_comparison/) |
+| **Roadmap** | […/roadmap/](https://entie.readthedocs.io/en/latest/roadmap/) |
 | **Code reference** | [entie](https://entie.readthedocs.io/en/latest/reference/entie/) · [entei_core](https://entie.readthedocs.io/en/latest/reference/entei_core/) |
 
 Repository files: [CHANGELOG](https://github.com/eddiethedean/entie/blob/main/CHANGELOG.md) · [CONTRIBUTING](https://github.com/eddiethedean/entie/blob/main/CONTRIBUTING.md) (detailed commands; the **Development** doc above links here).

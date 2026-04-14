@@ -54,6 +54,18 @@ class EnteiDataFrame:
 
         ``fields`` fixes column order for empty collections and limits which keys are
         read; if omitted, keys are inferred from documents (see :class:`MongoRoot`).
+
+        Parameters
+        ----------
+        collection:
+            Collection to scan (full read on ``collect``).
+        fields:
+            Optional ordered column names; omit to infer from documents.
+
+        Returns
+        -------
+        EnteiDataFrame
+            Lazy frame; call :meth:`collect` to materialize.
         """
         fk = tuple(fields) if fields is not None else None
         return cls(collection, fields=fk)
@@ -93,6 +105,16 @@ class EnteiDataFrame:
 
         With ``as_lists=True`` (default), returns ``dict[str, list]`` columnar form.
         With ``as_lists=False``, returns ``list[dict]`` rows.
+
+        Parameters
+        ----------
+        as_lists:
+            If ``True``, columnar output; if ``False``, one dict per row.
+
+        Returns
+        -------
+        dict[str, list] or list[dict]
+            Columnar or row-oriented result.
         """
         root = MongoRoot(self._collection, fields=self._fields)
         cols = mongo_root_to_column_dict(root)

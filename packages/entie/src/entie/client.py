@@ -21,6 +21,11 @@ class EntieMongoClient:
     __slots__ = ("_client",)
 
     def __init__(self, client: MongoClient[Any]) -> None:
+        """Parameters
+        ----------
+        client:
+            An existing PyMongo :class:`~pymongo.mongo_client.MongoClient`.
+        """
         self._client = client
 
     @property
@@ -29,11 +34,26 @@ class EntieMongoClient:
         return self._client
 
     def database(self, name: str, *, codec_options: Any | None = None) -> EntieDatabase:
+        """Open a database by name.
+
+        Parameters
+        ----------
+        name:
+            MongoDB database name.
+        codec_options:
+            Optional :class:`~bson.codec_options.CodecOptions` for this database.
+
+        Returns
+        -------
+        EntieDatabase
+            Handle backed by ``client[name]`` or ``get_database``.
+        """
         if codec_options is not None:
             return EntieDatabase(self._client.get_database(name, codec_options=codec_options))
         return EntieDatabase(self._client[name])
 
     def close(self) -> None:
+        """Close the underlying PyMongo client."""
         self._client.close()
 
     def __enter__(self) -> EntieMongoClient:
@@ -44,11 +64,20 @@ class EntieMongoClient:
 
 
 class EntieDatabase:
-    """Reference to a MongoDB database (moltres ``Database``-shaped entry point)."""
+    """Reference to a MongoDB database (moltres ``Database``-shaped entry point).
+
+    Wrap a PyMongo :class:`~pymongo.database.Database`, not a
+    :class:`~pymongo.collection.Collection`.
+    """
 
     __slots__ = ("_db",)
 
     def __init__(self, db: Any) -> None:
+        """Parameters
+        ----------
+        db:
+            PyMongo ``Database`` instance (e.g. ``client["app"]``).
+        """
         self._db = db
 
     @property
@@ -65,6 +94,7 @@ class EntieDatabase:
         return self.collection(name)
 
     def list_collection_names(self) -> list[str]:
+        """Return collection names in this database (delegates to PyMongo)."""
         return list(self._db.list_collection_names())
 
     def tables(self) -> list[str]:

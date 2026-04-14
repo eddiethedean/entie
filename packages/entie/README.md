@@ -1,8 +1,15 @@
 # entie
 
-**MongoDB table helpers** on [**entei-core**](../entei-core/): `connect`, **`EntieDatabase`** / **`EntieMongoClient`**, **`EnteiDataFrame`**, **`Records`**, and **`col` / `lit` / `column`**.
+[![PyPI version](https://img.shields.io/pypi/v/entie.svg)](https://pypi.org/project/entie/)
+[![Python versions](https://img.shields.io/pypi/pyversions/entie.svg)](https://pypi.org/project/entie/)
+
+**MongoDB table helpers** on [**entei-core**](https://github.com/eddiethedean/entie/tree/main/packages/entei-core): `connect`, **`EntieDatabase`** / **`EntieMongoClient`**, **`EnteiDataFrame`**, **`Records`**, and **`col` / `lit` / `column`**.
 
 Aligned with [moltres](https://github.com/eddiethedean/moltres) ergonomics (`connect`, `table`, `Records.insert_into`) for document databases — **no** pydantable-native.
+
+- **Documentation:** [entie.readthedocs.io](https://entie.readthedocs.io/) · [docs on GitHub](https://github.com/eddiethedean/entie/tree/main/docs)
+- **Changelog:** [CHANGELOG](https://github.com/eddiethedean/entie/blob/main/CHANGELOG.md)
+- **See also:** [**entei-core**](https://pypi.org/project/entei-core/) for `MongoRoot` / materialization only
 
 ## Install
 

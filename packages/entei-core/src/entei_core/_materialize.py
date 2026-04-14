@@ -8,6 +8,18 @@ from .mongo_root import MongoRoot
 
 
 def mongo_root_to_column_dict(root: MongoRoot) -> dict[str, list[Any]]:
+    """Read all documents from ``root.collection`` into columnar form.
+
+    Parameters
+    ----------
+    root:
+        Collection root and optional ``fields`` ordering (see :class:`MongoRoot`).
+
+    Returns
+    -------
+    dict[str, list]
+        One list per column key, aligned by row index.
+    """
     coll = root.collection
     cursor = coll.find()
     docs: list[dict[str, Any]] = list(cursor)
@@ -31,7 +43,19 @@ def mongo_root_to_column_dict(root: MongoRoot) -> dict[str, list[Any]]:
 
 
 def materialize_root_data(data: Any) -> Any:
-    """If ``data`` is :class:`MongoRoot`, return columnar dict; else pass through."""
+    """If ``data`` is :class:`MongoRoot`, return columnar dict; else pass through.
+
+    Parameters
+    ----------
+    data:
+        A :class:`MongoRoot` or any other value.
+
+    Returns
+    -------
+    Any
+        Columnar dict from :func:`mongo_root_to_column_dict` if ``data`` is
+        :class:`MongoRoot`; otherwise ``data`` unchanged.
+    """
     if isinstance(data, MongoRoot):
         return mongo_root_to_column_dict(data)
     return data

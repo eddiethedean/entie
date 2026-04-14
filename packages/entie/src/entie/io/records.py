@@ -16,6 +16,13 @@ class Records:
     __slots__ = ("_database", "_rows")
 
     def __init__(self, rows: list[dict[str, Any]], *, database: EntieDatabase) -> None:
+        """Parameters
+        ----------
+        rows:
+            Document-shaped dicts to insert.
+        database:
+            Target :class:`~entie.client.EntieDatabase` (wraps a PyMongo database).
+        """
         self._rows = rows
         self._database = database
 
@@ -26,7 +33,13 @@ class Records:
         *,
         database: EntieDatabase,
     ) -> Records:
-        """Build from a list of row dicts (copied shallowly into a new list)."""
+        """Build from a list of row dicts (copied shallowly into a new list).
+
+        Returns
+        -------
+        Records
+            Ready for :meth:`insert_into`.
+        """
         return cls(list(rows), database=database)
 
     def insert_into(self, table: str) -> Any:

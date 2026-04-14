@@ -16,12 +16,29 @@ pytest
 
 HTML report: `make coverage-html` (writes `htmlcov/`).
 
-Lint and format (see also `Makefile`):
+Lint, format, and type-check (same paths as [Makefile](Makefile) and CI):
 
 ```bash
-ruff check packages/entei-core/src packages/entie/src
-ruff format packages/entei-core/src packages/entie/src
+make lint          # ruff check on src + tests
+make format        # ruff format on src + tests
 ```
+
+Or explicitly:
+
+```bash
+ruff check packages/entei-core/src packages/entie/src packages/entei-core/tests packages/entie/tests
+ruff format packages/entei-core/src packages/entie/src packages/entei-core/tests packages/entie/tests
+ty check packages/entei-core/src packages/entie/src packages/entei-core/tests packages/entie/tests
+```
+
+## Documentation checklist
+
+When you change **public API** behavior or signatures:
+
+1. Update **docstrings** in `packages/*/src/`.
+2. Update **[CHANGELOG.md](CHANGELOG.md)** under a new or unreleased section.
+3. Update relevant **[docs/](docs/)** pages (API overview, getting started, troubleshooting) if users need new guidance.
+4. If you add optional **docs-site** dependencies, run `mkdocs build --strict` locally before pushing.
 
 ## Design notes
 

@@ -1,10 +1,18 @@
 # entei-core
 
+[![PyPI version](https://img.shields.io/pypi/v/entei-core.svg)](https://pypi.org/project/entei-core/)
+
 Lightweight **MongoDB root** helpers: **`MongoRoot`** wraps a PyMongo collection; **`mongo_root_to_column_dict`** / **`materialize_root_data`** turn it into columnar ``dict[str, list]``.
 
 Depends on **`pydantable-protocol`**, **PyMongo**, and **typing-extensions** only (no native Rust stack).
 
-For **`EnteiDataFrame`** and connection helpers, install the umbrella package **`entie`**.
+| Use case | Package |
+|----------|---------|
+| Columnar materialization only, minimal deps | **`entei-core`** (this package) |
+| `connect`, `EnteiDataFrame`, `Records`, expressions | Install **`entie`** ([PyPI](https://pypi.org/project/entie/)) — it depends on **entei-core** |
+
+- **Documentation:** [entie.readthedocs.io](https://entie.readthedocs.io/)
+- **Changelog:** [CHANGELOG](https://github.com/eddiethedean/entie/blob/main/CHANGELOG.md)
 
 ## Install
 

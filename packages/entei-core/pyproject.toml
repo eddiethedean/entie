@@ -23,6 +23,12 @@ dependencies = [
     "typing-extensions>=4.5",
 ]
 
+[project.urls]
+Homepage = "https://github.com/eddiethedean/entie"
+Documentation = "https://entie.readthedocs.io/"
+Repository = "https://github.com/eddiethedean/entie"
+Issues = "https://github.com/eddiethedean/entie/issues"
+
 [project.optional-dependencies]
 dev = [
     "entei-core[test]",

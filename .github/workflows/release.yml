@@ -11,19 +11,24 @@ on:
         required: false
         type: string
 
-jobs:
-  build-and-publish:
-    runs-on: ubuntu-latest
+# One `pypi-publish` invocation per job — PyPA does not support multiple
+# publishes in the same job (see gh-action-pypi-publish README).
 
+jobs:
+  build-dists:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # workflow_dispatch: optional tag input; push tag: github.ref is refs/tags/v*
+          ref: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.tag) || github.ref }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Install build tooling
+      - name: Install build and twine
         run: |
           python -m pip install --upgrade pip
           python -m pip install build twine
@@ -32,7 +37,7 @@ jobs:
         id: tag
         shell: bash
         run: |
-          TAG_INPUT="${{ inputs.tag }}"
+          TAG_INPUT="${{ github.event.inputs.tag }}"
           if [ -n "$TAG_INPUT" ]; then
             TAG="$TAG_INPUT"
           else
@@ -119,26 +124,64 @@ jobs:
           print(f"__version__ OK: entei_core={v_core}, entie={v_entie}")
           PY
 
-      - name: Build entei-core
+      - name: Build entei-core (python -m build, twine check)
         working-directory: packages/entei-core
         run: |
           python -m build
           python -m twine check dist/*
 
-      - name: Build entie
+      - name: Build entie (python -m build, twine check)
         working-directory: packages/entie
         run: |
           python -m build
           python -m twine check dist/*
 
+      - name: Upload entei-core dist artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dists-entei-core
+          path: packages/entei-core/dist
+
+      - name: Upload entie dist artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dists-entie
+          path: packages/entie/dist
+
+  publish-entei-core:
+    needs: build-dists
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Download entei-core distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: dists-entei-core
+          path: dist
+
       - name: Publish entei-core to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
-          packages-dir: packages/entei-core/dist
+          packages-dir: dist/
+          password: ${{ secrets.PYPI_API_TOKEN_ENTEI_CORE || secrets.PYPI_API_TOKEN }}
+
+  publish-entie:
+    needs: build-dists
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Download entie distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: dists-entie
+          path: dist
 
       - name: Publish entie to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
-          packages-dir: packages/entie/dist
+          packages-dir: dist/
+          password: ${{ secrets.PYPI_API_TOKEN_ENTIE || secrets.PYPI_API_TOKEN }}

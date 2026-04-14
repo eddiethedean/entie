@@ -72,7 +72,7 @@ make test           # pytest (100% line coverage gate via pytest-cov)
 make coverage-html  # HTML report in htmlcov/
 make lint           # ruff check (src + tests)
 make format         # ruff format
-make build          # build + twine check both packages
+make build          # python -m build + python -m twine check (each package)
 ```
 
 ## Repository layout

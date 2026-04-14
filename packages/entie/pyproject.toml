@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "entie"
 version = "0.2.0"
-description = "MongoDB table helpers on entei-core — PyMongo only, no pydantable-native"
+description = "MongoDB helpers on PyMongo and entei-core: connect, collection-backed frames, bulk inserts"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"

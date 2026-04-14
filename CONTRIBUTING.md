@@ -59,5 +59,28 @@ tables.
   into the new section when you cut the release).
 - Ensure **CI** is green on `main` (`pytest`, lint, docs build as applicable).
 - Tag **`vX.Y.Z`** (leading `v`) and push the tag; the [release workflow](.github/workflows/release.yml)
-  builds both sdists/wheels, runs `twine check`, and uploads **entei-core** then
-  **entie** to PyPI (requires repository secret **`PYPI_API_TOKEN`**).
+  builds both sdists/wheels, runs `twine check`, and uploads each package in a **separate job**
+  (PyPA’s `pypi-publish` action [does not support](https://github.com/pypa/gh-action-pypi-publish#non-goals)
+  multiple uploads in one job).
+- To **re-run** a release without moving the tag, use **Actions → Release → Run workflow** and set
+  the tag input (e.g. `v0.2.0`) so the checkout matches that ref.
+
+**PyPI tokens:** A [project-scoped API token](https://docs.pypi.org/trusted-publishers/) only works for **one** package. Either:
+
+- Set a **user-wide** (legacy) **`PYPI_API_TOKEN`** that can upload both projects, or  
+- Set **`PYPI_API_TOKEN_ENTEI_CORE`** and **`PYPI_API_TOKEN_ENTIE`** (one secret per PyPI project).
+
+If a release tag pushed but **only one** package appeared on PyPI, the first step likely succeeded and the second failed with **403**—fix tokens and **re-run the failed job** in GitHub Actions, or publish manually from a clean build:
+
+```bash
+python -m pip install build twine
+make build
+# or: cd packages/entei-core && python -m build && python -m twine check dist/*  (repeat for entie)
+
+python -m twine upload packages/entei-core/dist/*
+python -m twine upload packages/entie/dist/*
+```
+
+Same flow in one step (after `pip install build twine`): `make upload-pypi`.
+
+(`TWINE_USERNAME=__token__` and `TWINE_PASSWORD=<api-token>` or `keyring`—see [PyPI upload docs](https://packaging.python.org/en/latest/tutorials/packaging-projects/#uploading-the-distribution-archives).)

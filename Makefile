@@ -1,4 +1,4 @@
-.PHONY: help test coverage coverage-html lint format format-check build build-check install-editable clean
+.PHONY: help test coverage coverage-html lint format format-check build build-check upload-pypi install-editable clean
 
 help:
 	@echo "entie monorepo — see https://github.com/eddiethedean/moltres for the SQL sibling project."
@@ -10,7 +10,8 @@ help:
 	@echo "  make lint              ruff check (src + tests)"
 	@echo "  make format            ruff format (src + tests)"
 	@echo "  make format-check      ruff format --check"
-	@echo "  make build             python -m build + twine check each package"
+	@echo "  make build             python -m build then python -m twine check (each package)"
+	@echo "  make upload-pypi       same as build, then python -m twine upload (needs PyPI creds)"
 	@echo "  make clean             remove dist/ and build/ under packages/*"
 
 install-editable:
@@ -39,6 +40,11 @@ build-check: build
 build:
 	cd packages/entei-core && rm -rf dist build && python -m build && python -m twine check dist/*
 	cd packages/entie && rm -rf dist build && python -m build && python -m twine check dist/*
+
+# Requires: pip install build twine ; PyPI token via TWINE_USERNAME / TWINE_PASSWORD or keyring.
+upload-pypi: build
+	cd packages/entei-core && python -m twine upload dist/*
+	cd packages/entie && python -m twine upload dist/*
 
 clean:
 	rm -rf packages/entei-core/dist packages/entei-core/build packages/entie/dist packages/entie/build

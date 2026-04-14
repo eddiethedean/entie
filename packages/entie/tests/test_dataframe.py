@@ -20,9 +20,5 @@ def test_entei_dataframe_select_filter_rows() -> None:
     coll = client.db.items
     coll.insert_many([{"x": 1}, {"x": 5}, {"x": 3}])
     df = EnteiDataFrame.from_collection(coll)
-    out = (
-        df.filter_rows(lambda r: (r.get("x") or 0) > 2)
-        .select("x")
-        .collect(as_lists=True)
-    )
+    out = df.filter_rows(lambda r: (r.get("x") or 0) > 2).select("x").collect(as_lists=True)
     assert sorted(out["x"]) == [3, 5]

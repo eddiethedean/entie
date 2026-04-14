@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Sequence
-from typing import Any
+from typing import Any, Literal, overload
 
 from entei_core import MongoRoot, mongo_root_to_column_dict
 
@@ -77,6 +77,12 @@ class EnteiDataFrame:
             filters=self._filters + (predicate,),
             projection=self._projection,
         )
+
+    @overload
+    def collect(self, *, as_lists: Literal[True] = True) -> dict[str, list[Any]]: ...
+
+    @overload
+    def collect(self, *, as_lists: Literal[False]) -> list[dict[str, Any]]: ...
 
     def collect(
         self,

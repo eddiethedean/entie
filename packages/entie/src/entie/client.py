@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-from typing import Any
+from typing import Any, overload
 
 from pymongo import MongoClient
 
@@ -70,6 +70,26 @@ class EntieDatabase:
     def tables(self) -> list[str]:
         """Collection names in this database (alias for :meth:`list_collection_names`)."""
         return self.list_collection_names()
+
+
+@overload
+def connect(
+    uri: str | None = None,
+    *,
+    database: str,
+    client: MongoClient[Any] | None = None,
+    **client_kwargs: Any,
+) -> EntieDatabase: ...
+
+
+@overload
+def connect(
+    uri: str | None = None,
+    *,
+    database: None = None,
+    client: MongoClient[Any] | None = None,
+    **client_kwargs: Any,
+) -> EntieMongoClient: ...
 
 
 def connect(

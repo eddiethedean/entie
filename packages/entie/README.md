@@ -1,6 +1,8 @@
-# Entie
+# entie
 
-**MongoDB helpers on [entei-core](../entei-core/)** — PyMongo plus column materialization. This package does **not** use **pydantable-native** or the pydantable Rust executor.
+**MongoDB table helpers** on [**entei-core**](../entei-core/): `connect`, **`EntieDatabase`** / **`EntieMongoClient`**, **`EnteiDataFrame`**, **`Records`**, and **`col` / `lit` / `column`**.
+
+Aligned with [moltres](https://github.com/eddiethedean/moltres) ergonomics (`connect`, `table`, `Records.insert_into`) for document databases — **no** pydantable-native.
 
 ## Install
 
@@ -8,37 +10,33 @@
 pip install entie
 ```
 
-From the monorepo (install core first, then entie):
+From the monorepo:
 
 ```bash
-pip install -e ./packages/entei-core
-pip install -e ./packages/entie
+pip install -e ../entei-core
+pip install -e .
 ```
 
-## Quick start
+## Features
+
+- **`connect`** — PyMongo entrypoint; `ENTIE_URI` when `uri` is omitted (like `MOLTRES_DSN`).
+- **`EntieDatabase.table` / `.collection`** — access a collection; **`tables()`** lists names.
+- **`EnteiDataFrame`** — lazy read + `filter_rows` + `select` + `collect` (pure Python).
+- **`Records.from_list(..., database=db).insert_into("name")`** — bulk insert (moltres-style).
+- Re-exports **`MongoRoot`** and materialization helpers from **entei-core**.
+
+## Example
 
 ```python
-from entie import EnteiDataFrame, connect
+from entie import EnteiDataFrame, Records, connect
 
 db = connect("mongodb://localhost:27017", database="app")
-coll = db.collection("items")
-coll.insert_many([{"x": 1}, {"x": 2}])
 
-df = EnteiDataFrame.from_collection(coll)
-assert df.collect(as_lists=True)["x"] == [1, 2]
+Records.from_list([{"x": 1}], database=db).insert_into("items")
 
-filtered = df.filter_rows(lambda r: r.get("x", 0) > 1).select("x")
-assert filtered.collect(as_lists=True) == {"x": [2]}
+df = EnteiDataFrame.from_collection(db.table("items"), fields=("x",))
+df.collect(as_lists=True)  # {"x": [1]}  (+ Mongo _id if fields not fixed)
 ```
-
-Connection string can be omitted if `ENTIE_URI` is set (similar to `MOLTRES_DSN` for moltres).
-
-## What this package provides
-
-- **`connect`** — `EntieMongoClient` / `EntieDatabase` wrappers
-- **`EnteiDataFrame`** — lazy view; **`collect`**, **`filter_rows`**, **`select`** (pure Python)
-- Re-exports **`MongoRoot`** and materialization helpers from **entei-core**
-- **`col`**, **`lit`**, **`column`** — lightweight helpers
 
 ## License
 

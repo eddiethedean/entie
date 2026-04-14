@@ -1,51 +1,72 @@
-# entie (monorepo)
+# entie
 
-Python packages for MongoDB column materialization and helpers:
+**MongoDB operations layer for Python** — the [moltres](https://github.com/eddiethedean/moltres)-shaped twin for **MongoDB** instead of SQL: connect to a database, work with collection “tables”, insert rows with **`Records`**, and run a small **DataFrame**-style API backed by **entei-core** materialization (no pydantable-native).
 
-| Package | Path | Description |
-|--------|------|-------------|
-| **entei-core** | [`packages/entei-core`](packages/entei-core/) | `MongoRoot`, columnar materialization (`pydantable-protocol` + PyMongo) |
-| **entie** | [`packages/entie`](packages/entie/) | Connection helpers, `EnteiDataFrame`, re-exports |
+| | SQL stack | Mongo stack (this repo) |
+|--|-----------|-------------------------|
+| Umbrella | [moltres](https://github.com/eddiethedean/moltres) | **entie** |
+| Core | moltres-core | **entei-core** |
 
-## Development
+## Packages
 
-Install both packages in editable mode (core first):
+| Package | Path | Role |
+|--------|------|------|
+| **entei-core** | [`packages/entei-core`](packages/entei-core/) | `MongoRoot`, `mongo_root_to_column_dict` — columnar `dict[str, list]` from collections |
+| **entie** | [`packages/entie`](packages/entie/) | `connect`, `EntieDatabase`, `EnteiDataFrame`, `Records`, expressions |
+
+## Install
+
+```bash
+pip install entie
+```
+
+Editable monorepo:
 
 ```bash
 pip install -e ./packages/entei-core
-pip install -e ./packages/entie
+pip install -e "./packages/entie[dev]"
 ```
 
-Or with [uv](https://docs.astral.sh/uv/) (workspace members are declared in root `pyproject.toml`):
+## Quick start
 
-```bash
-uv sync
+```python
+from entie import EnteiDataFrame, Records, connect
+
+db = connect("mongodb://localhost:27017", database="app")
+
+Records.from_list(
+    [{"sku": "a1", "qty": 2}],
+    database=db,
+).insert_into("inventory")
+
+df = EnteiDataFrame.from_collection(db.table("inventory"), fields=("sku", "qty"))
+print(df.collect(as_lists=True))
 ```
 
-Run tests from the repository root:
+- **Getting started**: [docs/getting_started.md](docs/getting_started.md)
+- **Changelog**: [CHANGELOG.md](CHANGELOG.md)
+- **Contributing**: [CONTRIBUTING.md](CONTRIBUTING.md)
+
+## Development
 
 ```bash
-pytest
+make test          # pytest
+make lint          # ruff check
+make format        # ruff format
+make build         # build + twine check both packages
 ```
 
 ## Layout
 
 ```
-packages/
-  entei-core/
-    pyproject.toml
-    README.md
-    src/entei_core/
-    tests/
-  entie/
-    pyproject.toml
-    README.md
-    src/entie/
-    tests/
-pyproject.toml   # pytest, ruff, uv workspace
-README.md        # this file
+packages/entei-core/   # PyPI: entei-core
+packages/entie/        # PyPI: entie
+docs/
+.github/workflows/
+Makefile
+pyproject.toml         # pytest + ruff + uv workspace
 ```
 
 ## License
 
-MIT
+MIT — see [LICENSE](LICENSE).

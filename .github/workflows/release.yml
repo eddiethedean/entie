@@ -1,0 +1,106 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag (e.g. v0.2.0). If empty, uses the current ref name."
+        required: false
+        type: string
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install build tooling
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install build twine
+
+      - name: Determine tag and version
+        id: tag
+        shell: bash
+        run: |
+          TAG_INPUT="${{ inputs.tag }}"
+          if [ -n "$TAG_INPUT" ]; then
+            TAG="$TAG_INPUT"
+          else
+            TAG="${GITHUB_REF_NAME}"
+          fi
+          if [[ "$TAG" != v* ]]; then
+            echo "Tag must start with 'v' (got: $TAG)" >&2
+            exit 1
+          fi
+          VERSION="${TAG#v}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Verify versions match tag
+        shell: bash
+        env:
+          VERSION: ${{ steps.tag.outputs.version }}
+        run: |
+          python <<'PY'
+          import os
+          import sys
+          from pathlib import Path
+
+          import tomllib
+
+          version = os.environ["VERSION"]
+
+          def read_version(pyproject_path: Path) -> str:
+              data = tomllib.loads(pyproject_path.read_text(encoding="utf-8"))
+              return data["project"]["version"]
+
+          root = Path("packages/entei-core/pyproject.toml")
+          umbrella = Path("packages/entie/pyproject.toml")
+          v_core = read_version(root)
+          v_entie = read_version(umbrella)
+          mismatches = []
+          if v_core != version:
+              mismatches.append(f"entei-core version={v_core!r} != tag {version!r}")
+          if v_entie != version:
+              mismatches.append(f"entie version={v_entie!r} != tag {version!r}")
+          if mismatches:
+              print("Version mismatch:", file=sys.stderr)
+              for m in mismatches:
+                  print(f"- {m}", file=sys.stderr)
+              sys.exit(1)
+          print(f"Versions OK: entei-core={v_core}, entie={v_entie}")
+          PY
+
+      - name: Build entei-core
+        working-directory: packages/entei-core
+        run: |
+          python -m build
+          python -m twine check dist/*
+
+      - name: Build entie
+        working-directory: packages/entie
+        run: |
+          python -m build
+          python -m twine check dist/*
+
+      - name: Publish entei-core to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          packages-dir: packages/entei-core/dist
+
+      - name: Publish entie to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          packages-dir: packages/entie/dist

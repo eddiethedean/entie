@@ -60,8 +60,16 @@ class EntieDatabase:
         """Return a :class:`~pymongo.collection.Collection` by name."""
         return self._db[name]
 
+    def table(self, name: str) -> Any:
+        """Same as :meth:`collection` — moltres-style name for a logical table."""
+        return self.collection(name)
+
     def list_collection_names(self) -> list[str]:
         return list(self._db.list_collection_names())
+
+    def tables(self) -> list[str]:
+        """Collection names in this database (alias for :meth:`list_collection_names`)."""
+        return self.list_collection_names()
 
 
 def connect(
@@ -101,9 +109,7 @@ def connect(
     if client is None:
         resolved = uri if uri is not None else os.environ.get(_DEFAULT_URI_ENV)
         if not resolved:
-            raise ValueError(
-                "Provide uri=..., set ENTIE_URI, or pass client=... to connect()."
-            )
+            raise ValueError("Provide uri=..., set ENTIE_URI, or pass client=... to connect().")
         client = MongoClient(resolved, **client_kwargs)
 
     wrapped = EntieMongoClient(client)

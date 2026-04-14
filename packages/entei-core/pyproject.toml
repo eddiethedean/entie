@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "entei-core"
-version = "0.1.0"
+version = "0.2.0"
 description = "MongoDB root materialization to columnar dicts (PyMongo; pydantable-protocol only)."
 readme = "README.md"
-license = { text = "MIT" }
+license = "MIT"
 requires-python = ">=3.10"
 classifiers = [
     "Development Status :: 3 - Alpha",

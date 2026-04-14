@@ -14,14 +14,16 @@ from entei_core import MongoRoot, materialize_root_data, mongo_root_to_column_di
 from .client import EntieDatabase, EntieMongoClient, connect
 from .dataframe import EnteiDataFrame
 from .expressions import col, column, lit
+from .io import Records
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 __all__ = [
     "EnteiDataFrame",
     "EntieDatabase",
     "EntieMongoClient",
     "MongoRoot",
+    "Records",
     "materialize_root_data",
     "mongo_root_to_column_dict",
     "__version__",

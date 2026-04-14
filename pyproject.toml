@@ -6,8 +6,22 @@ build-backend = "setuptools.build_meta"
 
 [tool.pytest.ini_options]
 minversion = "8.0"
-addopts = "-ra --strict-markers -p no:green_light"
+addopts = "-ra --strict-markers -p no:green_light --cov=packages/entei-core/src/entei_core --cov=packages/entie/src/entie --cov-report=term-missing"
 testpaths = ["packages/entei-core/tests", "packages/entie/tests"]
+
+[tool.coverage.run]
+# Paths avoid "module-not-measured" when packages are imported before coverage hooks.
+source = ["packages/entei-core/src/entei_core", "packages/entie/src/entie"]
+omit = ["*/tests/*"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+fail_under = 100
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+]
 
 [tool.ruff]
 line-length = 100

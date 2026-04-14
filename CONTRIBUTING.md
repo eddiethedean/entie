@@ -8,11 +8,13 @@ Thanks for helping improve **entie** and **entei-core**.
 pip install -e ./packages/entei-core -e "./packages/entie[dev]"
 ```
 
-Run tests from the repository root:
+Run tests from the repository root (includes **pytest-cov** and **100% line coverage** gate via [pyproject.toml](pyproject.toml)):
 
 ```bash
 pytest
 ```
+
+HTML report: `make coverage-html` (writes `htmlcov/`).
 
 Lint and format (see also `Makefile`):
 

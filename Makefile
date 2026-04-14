@@ -1,10 +1,12 @@
-.PHONY: help test lint format format-check build build-check install-editable clean
+.PHONY: help test coverage coverage-html lint format format-check build build-check install-editable clean
 
 help:
 	@echo "entie monorepo — see https://github.com/eddiethedean/moltres for the SQL sibling project."
 	@echo ""
 	@echo "  make install-editable  pip install -e packages (entei-core then entie)"
-	@echo "  make test              pytest (from repo root)"
+	@echo "  make test              pytest with coverage (100% line gate)"
+	@echo "  make coverage          pytest with coverage (requires pytest-cov; see entie[dev])"
+	@echo "  make coverage-html       same + htmlcov/"
 	@echo "  make lint              ruff check packages/*/src"
 	@echo "  make format            ruff format packages/*/src"
 	@echo "  make format-check      ruff format --check"
@@ -17,14 +19,20 @@ install-editable:
 test:
 	pytest
 
+coverage:
+	pytest --cov=packages/entei-core/src/entei_core --cov=packages/entie/src/entie --cov-report=term-missing --cov-fail-under=100
+
+coverage-html:
+	pytest --cov=packages/entei-core/src/entei_core --cov=packages/entie/src/entie --cov-report=term-missing --cov-report=html --cov-fail-under=100
+
 lint:
-	ruff check packages/entei-core/src packages/entie/src
+	ruff check packages/entei-core/src packages/entie/src packages/entei-core/tests packages/entie/tests
 
 format:
-	ruff format packages/entei-core/src packages/entie/src
+	ruff format packages/entei-core/src packages/entie/src packages/entei-core/tests packages/entie/tests
 
 format-check:
-	ruff format --check packages/entei-core/src packages/entie/src
+	ruff format --check packages/entei-core/src packages/entie/src packages/entei-core/tests packages/entie/tests
 
 build-check: build
 

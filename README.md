@@ -50,10 +50,11 @@ print(df.collect(as_lists=True))
 ## Development
 
 ```bash
-make test          # pytest
-make lint          # ruff check
-make format        # ruff format
-make build         # build + twine check both packages
+make test            # pytest (100% line coverage gate via pytest-cov)
+make coverage-html # HTML report in htmlcov/
+make lint            # ruff check (src + tests)
+make format          # ruff format
+make build           # build + twine check both packages
 ```
 
 ## Layout
